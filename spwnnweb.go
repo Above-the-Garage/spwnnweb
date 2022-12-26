@@ -24,7 +24,7 @@ func initDict() {
 }
 
 func gohm(word string) []spwnn.SpwnnResult {
-	results, _ := spwnn.CorrectSpelling(dict, word)
+	results, _ := spwnn.CorrectSpelling(dict, word, false /* strictLen */)
 	return results
 }
 
