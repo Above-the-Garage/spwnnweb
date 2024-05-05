@@ -35,27 +35,38 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 
 const templateStr = `
 <html>
+
 <head>
-<title>Spwnn associative memory spelling corrector - Stephen Clarke-Willson</title>
+  <title>Spwnn associative memory spelling corrector - Stephen Clarke-Willson</title>
+  <style>
+    body {
+      transform: scale(3);
+      transform-origin: top left;
+    }
+  </style>
 </head>
+
 <body>
-<form action="/" name=form method="GET">
-  <input maxLength=40 size=70 name=word value="" title="Word" autofocus>
-  <input type=submit value="Submit" name=cmd>
-</form>
-<br>
-{{if .}}
-Checking word: '{{.}}'
-<br><br>
-Associative Results:<br>
+  <form action="/" name=form method="GET">
+    <input maxLength=30 size=30 name=word value="" title="Word" autofocus>
+    <input type=submit value="Submit" name=cmd>
+  </form>
+  <p>
+  <br>
+  {{if .}}
+  Checking word: '{{.}}'
+  <br><br>
+  Associative Results:<br>
 	{{$val := (. | gohm)}}
 	{{range $val}}
 	  {{.Word}} <br>
 	{{end}}
 	<br>
-{{end}}
-<br>
+  {{end}}
+  <br>
+  </p>
 </body>
+
 </html>
 `
 
