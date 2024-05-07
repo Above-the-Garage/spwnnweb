@@ -12,7 +12,7 @@ import (
 
 var dict *spwnn.SpwnnDictionary
 
-var addr = flag.String("addr", ":1025", "http service address put colon in front")
+var addr = flag.String("addr", ":8080", "http service address put colon in front")
 
 var templ = template.Must(
 	template.New("gohm").
@@ -47,7 +47,7 @@ const templateStr = `
 </head>
 
 <body>
-  <form action="/" name=form method="GET">
+  <form action="/spwnn" name=form method="GET">
     <input maxLength=30 size=30 name=word value="" title="Word" autofocus>
     <input type=submit value="Submit" name=cmd>
   </form>
