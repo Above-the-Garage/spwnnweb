@@ -20,7 +20,7 @@ var templ = template.Must(
 		Parse(templateStr))
 
 func initDict() {
-	dict = spwnn.ReadDictionary(false)
+	dict = spwnn.ReadDictionary("knownWords.txt", false)
 }
 
 func gohm(word string) []spwnn.SpwnnResult {
