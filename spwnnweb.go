@@ -32,9 +32,15 @@ type pageData struct {
 // SpwnnPage uses a template to access the gohm algorithm.
 // Optional "?scoring=capped" (default) or "?scoring=original", and
 // "?length=any" (default) or "?length=same"; "?strict" is kept as a
-// shorthand for "?length=same".
+// shorthand for "?length=same"; "?help" shows the options.
 func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
+
+	if query.Has("help") {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprint(w, helpText)
+		return
+	}
 
 	lengthMatch := spwnn.AnyLength
 	if _, strict := query["strict"]; strict {
@@ -72,6 +78,21 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 	}
 	templ.Execute(w, data)
 }
+
+const helpText = `spwnn spelling corrector
+
+Query parameters:
+  ?word=WORD          word to correct (required)
+  &scoring=capped     credit each letter pair at most as often as the
+                      dictionary word has it (default)
+  &scoring=original   credit every repeated letter pair (old scoring)
+  &length=any         keep best matches of any length (default)
+  &length=same        keep only best matches the same length as WORD
+  &strict             shorthand for &length=same
+  ?help               show this help
+
+Example: ?word=speling&length=same
+`
 
 // parseScoring converts the scoring query text to a spwnn.PairScoring
 func parseScoring(name string) (spwnn.PairScoring, error) {
