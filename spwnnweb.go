@@ -91,7 +91,7 @@ Query parameters:
   &strict             shorthand for &length=same
   ?help               show this help
 
-Example: ?word=speling&length=same
+Example: ?word=seperate&length=same
 `
 
 // parseScoring converts the scoring query text to a spwnn.PairScoring
