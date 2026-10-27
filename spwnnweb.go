@@ -27,13 +27,15 @@ type pageData struct {
 	Word    string
 	Scoring string
 	Length  string
+	Help    string
 	Results []spwnn.SpwnnResult
 }
 
 // SpwnnPage uses a template to access the gohm algorithm.
 // Optional "?scoring=capped" (default) or "?scoring=original", and
 // "?length=any" (default) or "?length=same"; "?strict" is kept as a
-// shorthand for "?length=same"; "?help" shows the options.
+// shorthand for "?length=same"; "?help" shows the options as plain text,
+// and the Help button shows them on the page, then corrects any word typed.
 func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
 
@@ -79,6 +81,9 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 	}
 	if lengthMatch == spwnn.SameLength {
 		data.Length = "same"
+	}
+	if query.Get("cmd") == "Help" {
+		data.Help = helpText
 	}
 	if data.Word != "" {
 		data.Results, _ = spwnn.CorrectSpelling(dict, data.Word, lengthMatch, scoring)
@@ -173,10 +178,35 @@ const templateStr = `
 
 <head>
   <title>Spwnn associative memory spelling corrector - Stephen Clarke-Willson</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      transform: scale(3);
-      transform-origin: top left;
+      font-family: sans-serif;
+      font-size: 32px;
+      margin: 1em;
+    }
+    input {
+      font-size: 1em;
+      padding: 0.2em 0.4em;
+      margin: 0.1em 0;
+    }
+    input[name=word] {
+      width: 15em;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    pre {
+      font-size: 0.6em;
+      overflow-x: auto;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 20px;
+        margin: 0.5em;
+      }
+      pre {
+        font-size: 11px;
+      }
     }
   </style>
 </head>
@@ -185,9 +215,11 @@ const templateStr = `
   <form action="/spwnn" name=form method="GET">
     <input maxLength=30 size=30 name=word value="" title="Word" autofocus>
     <input type=submit value="Submit" name=cmd>
+    <input type=submit value="Help" name=cmd>
     {{if .Scoring}}<input type=hidden name=scoring value="{{.Scoring}}">{{end}}
     {{if .Length}}<input type=hidden name=length value="{{.Length}}">{{end}}
   </form>
+  {{if .Help}}<pre>{{.Help}}</pre>{{end}}
   <p>
   <br>
   {{if .Word}}
