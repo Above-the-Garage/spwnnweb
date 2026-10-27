@@ -27,7 +27,7 @@ type pageData struct {
 	Word    string
 	Scoring string
 	Length  string
-	Help    string
+	Help    template.HTML
 	Results []spwnn.SpwnnResult
 }
 
@@ -83,7 +83,7 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 		data.Length = "same"
 	}
 	if query.Get("cmd") == "Help" {
-		data.Help = helpText
+		data.Help = helpHTML()
 	}
 	if data.Word != "" {
 		data.Results, _ = spwnn.CorrectSpelling(dict, data.Word, lengthMatch, scoring)
@@ -94,7 +94,7 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 const helpText = `spwnn spelling corrector
 
 Query parameters:
-  ?word=WORD          word to correct (required)
+  ?word=WORD          word to correct
   &scoring=capped     credit each letter pair at most as often as the
                       dictionary word has it (default)
   &scoring=original   credit every repeated letter pair (old scoring)
@@ -106,6 +106,13 @@ Query parameters:
 
 Example: ?word=seperate&length=same
 `
+
+// helpHTML is helpText for the web page, with ?craycray as a link
+func helpHTML() template.HTML {
+	escaped := template.HTMLEscapeString(helpText)
+	return template.HTML(strings.Replace(escaped, "?craycray",
+		`<a href="/spwnn?craycray">?craycray</a>`, 1))
+}
 
 // crayCrayCases are horribly misspelled words paired with the intended word.
 var crayCrayCases = [][2]string{
