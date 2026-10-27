@@ -24,11 +24,12 @@ func initDict() {
 
 // pageData is what the template shows
 type pageData struct {
-	Word    string
-	Scoring string
-	Length  string
-	Help    template.HTML
-	Results []spwnn.SpwnnResult
+	Word     string
+	Scoring  string
+	Length   string
+	Help     template.HTML
+	CrayCray string
+	Results  []spwnn.SpwnnResult
 }
 
 // SpwnnPage uses a template to access the gohm algorithm.
@@ -76,19 +77,28 @@ func SpwnnPage(w http.ResponseWriter, req *http.Request) {
 
 	data := pageData{
 		Word:    req.FormValue("word"),
-		Scoring: query.Get("scoring"),
-		Length:  query.Get("length"),
+		Scoring: "capped",
+		Length:  "any",
+	}
+	if scoring == spwnn.OriginalPairs {
+		data.Scoring = "original"
 	}
 	if lengthMatch == spwnn.SameLength {
 		data.Length = "same"
 	}
-	if query.Get("cmd") == "Help" {
+	switch query.Get("cmd") {
+	case "Help":
 		data.Help = helpHTML()
+	case "Craycray":
+		data.CrayCray = crayCrayText(lengthMatch, scoring)
+		data.Word = ""
 	}
 	if data.Word != "" {
 		data.Results, _ = spwnn.CorrectSpelling(dict, data.Word, lengthMatch, scoring)
 	}
-	templ.Execute(w, data)
+	if err := templ.Execute(w, data); err != nil {
+		log.Println("template:", err)
+	}
 }
 
 const helpText = `spwnn spelling corrector
@@ -202,6 +212,22 @@ const templateStr = `
       max-width: 100%;
       box-sizing: border-box;
     }
+    .options {
+      font-size: 0.6em;
+      margin-top: 0.5em;
+      display: grid;
+      grid-template-columns: max-content max-content max-content;
+      gap: 0.3em 1em;
+      align-items: center;
+    }
+    .options label {
+      white-space: nowrap;
+    }
+    input[type=radio] {
+      width: 1.1em;
+      height: 1.1em;
+      vertical-align: middle;
+    }
     pre {
       font-size: 0.6em;
       overflow-x: auto;
@@ -214,19 +240,30 @@ const templateStr = `
       pre {
         font-size: 11px;
       }
+      .options {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
 
 <body>
   <form action="/spwnn" name=form method="GET">
-    <input maxLength=30 size=30 name=word value="" title="Word" autofocus>
+    <input maxLength=30 size=30 name=word value="{{.Word}}" title="Word" autofocus>
     <input type=submit value="Submit" name=cmd>
     <input type=submit value="Help" name=cmd>
-    {{if .Scoring}}<input type=hidden name=scoring value="{{.Scoring}}">{{end}}
-    {{if .Length}}<input type=hidden name=length value="{{.Length}}">{{end}}
+    <input type=submit value="Craycray" name=cmd title="Run horribly misspelled words">
+    <div class=options>
+      <span>Scoring:</span>
+      <label><input type=radio name=scoring value="capped"{{if eq .Scoring "capped"}} checked{{end}}> capped</label>
+      <label><input type=radio name=scoring value="original"{{if eq .Scoring "original"}} checked{{end}}> original</label>
+      <span>Length:</span>
+      <label><input type=radio name=length value="any"{{if eq .Length "any"}} checked{{end}}> any</label>
+      <label><input type=radio name=length value="same"{{if eq .Length "same"}} checked{{end}}> same</label>
+    </div>
   </form>
   {{if .Help}}<pre>{{.Help}}</pre>{{end}}
+  {{if .CrayCray}}<pre>{{.CrayCray}}</pre>{{end}}
   <p>
   <br>
   {{if .Word}}
